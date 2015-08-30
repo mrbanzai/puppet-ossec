@@ -1,27 +1,40 @@
 # Setup for ossec client
 class ossec::client(
   $ossec_active_response   = true,
+  $ossec_rootcheck         = true,
   $ossec_server_ip,
   $ossec_emailnotification = "yes",
-  $selinux = false,
+  $ossec_ignorepaths       = [],
+  $ossec_check_frequency   = 79200,
+  $selinux                 = false,
+  $manage_repos            = false
 ) {
-  include ossec::common
+  validate_bool($ossec_active_response, $ossec_rootcheck, $selinux, $manage_repos);
+  # This allows arrays of integers, sadly
+  validate_integer($ossec_check_frequency, undef, 1800);
+  validate_array($ossec_ignorepaths);
+
+  class { 'ossec::packages':
+    manage_repos => $manage_repos
+  }
 
   case $::osfamily {
     'Debian' : {
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
-        require => Apt::Source['alienvault'],
+        require => $manage_repos ? {
+          true => Apt::Source['alienvault'],
+          default => []
+        }
       }
     }
     'RedHat' : {
-      package { 'ossec-hids':
-        ensure  => installed,
-        require => Yumrepo['ossec'],
-      }
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
-        require => Package['ossec-hids'],
+        require => $manage_repos ? {
+          true => Yumrepo['ossec'],
+          default => []
+        }
       }
     }
     default: { fail('OS family not supported') }
@@ -63,12 +76,12 @@ class ossec::client(
     require => Package[$ossec::common::hidsagentpackage]
   }
   ossec::agentkey{ "ossec_agent_${::fqdn}_client":
-    agent_id         => $::uniqueid,
+    agent_id         => $::uuid,
     agent_name       => $::fqdn,
     agent_ip_address => $::ipaddress,
   }
   @@ossec::agentkey{ "ossec_agent_${::fqdn}_server":
-    agent_id         => $::uniqueid,
+    agent_id         => $::uuid,
     agent_name       => $::fqdn,
     agent_ip_address => $::ipaddress
   }
