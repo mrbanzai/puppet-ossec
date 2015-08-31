@@ -14,7 +14,8 @@ class ossec::client(
     $selinux, $manage_repos
   )
   # This allows arrays of integers, sadly
-  validate_integer($ossec_check_frequency, undef, 1800)
+  # (commented due to stdlib version requirement)
+  #validate_integer($ossec_check_frequency, undef, 1800)
   validate_array($ossec_ignorepaths)
 
   class { 'ossec::packages':
