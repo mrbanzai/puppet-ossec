@@ -3,16 +3,19 @@ class ossec::client(
   $ossec_active_response   = true,
   $ossec_rootcheck         = true,
   $ossec_server_ip,
-  $ossec_emailnotification = "yes",
+  $ossec_emailnotification = 'yes',
   $ossec_ignorepaths       = [],
   $ossec_check_frequency   = 79200,
   $selinux                 = false,
   $manage_repos            = false
 ) {
-  validate_bool($ossec_active_response, $ossec_rootcheck, $selinux, $manage_repos);
+  validate_bool(
+    $ossec_active_response, $ossec_rootcheck,
+    $selinux, $manage_repos
+  )
   # This allows arrays of integers, sadly
-  validate_integer($ossec_check_frequency, undef, 1800);
-  validate_array($ossec_ignorepaths);
+  validate_integer($ossec_check_frequency, undef, 1800)
+  validate_array($ossec_ignorepaths)
 
   class { 'ossec::packages':
     manage_repos => $manage_repos
@@ -23,7 +26,7 @@ class ossec::client(
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
-          true => Apt::Source['alienvault'],
+          true    => Apt::Source['alienvault'],
           default => []
         }
       }
@@ -32,7 +35,7 @@ class ossec::client(
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
-          true => Yumrepo['ossec'],
+          true    => Yumrepo['ossec'],
           default => []
         }
       }

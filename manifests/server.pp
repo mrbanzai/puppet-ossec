@@ -14,10 +14,13 @@ class ossec::server (
   $use_mysql                           = false,
   $manage_repos                        = false
 ) {
-  validate_bool($ossec_active_response, $ossec_rootcheck, $use_mysql, $manage_repos);
+  validate_bool(
+    $ossec_active_response, $ossec_rootcheck,
+    $use_mysql, $manage_repos
+  )
   # This allows arrays of integers, sadly
-  validate_integer($ossec_check_frequency, undef, 1800);
-  validate_array($ossec_ignorepaths);
+  validate_integer($ossec_check_frequency, undef, 1800)
+  validate_array($ossec_ignorepaths)
 
   class { 'ossec::packages':
     manage_repos => $manage_repos
