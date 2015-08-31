@@ -24,6 +24,14 @@ class ossec::client(
 
   case $::osfamily {
     'Debian' : {
+      $ossec_local_files = {
+        '/var/log/syslog'             => 'syslog',
+        '/var/log/auth.log'           => 'syslog',
+        '/var/log/mail.log'           => 'syslog',
+        '/var/log/dpkg.log'           => 'syslog',
+        '/var/log/apache2/access.log' => 'apache',
+        '/var/log/apache2/error.log'  => 'apache'
+      }
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
@@ -33,6 +41,14 @@ class ossec::client(
       }
     }
     'RedHat' : {
+      $ossec_local_files = {
+        '/var/log/messages'         => 'syslog',
+        '/var/log/secure'           => 'syslog',
+        '/var/log/maillog'          => 'syslog',
+        '/var/log/yum.log'          => 'syslog',
+        '/var/log/httpd/access_log' => 'apache',
+        '/var/log/httpd/error_log'  => 'apache'
+      }
       package { $ossec::common::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
