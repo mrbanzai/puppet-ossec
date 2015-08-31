@@ -31,8 +31,6 @@ class ossec::server (
     include mysql::client
   }
 
-  $ossec_local_files = {}
-
   # install package
   case $::osfamily {
     'Debian' : {
