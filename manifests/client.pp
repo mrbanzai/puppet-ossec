@@ -32,7 +32,7 @@ class ossec::client(
         '/var/log/apache2/access.log' => 'apache',
         '/var/log/apache2/error.log'  => 'apache'
       }
-      package { $ossec::common::hidsagentpackage:
+      package { $ossec::packages::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
           true    => Apt::Source['alienvault'],
@@ -49,7 +49,7 @@ class ossec::client(
         '/var/log/httpd/access_log' => 'apache',
         '/var/log/httpd/error_log'  => 'apache'
       }
-      package { $ossec::common::hidsagentpackage:
+      package { $ossec::packages::hidsagentpackage:
         ensure  => installed,
         require => $manage_repos ? {
           true    => Yumrepo['ossec'],
@@ -60,40 +60,40 @@ class ossec::client(
     default: { fail('OS family not supported') }
   }
 
-  service { $ossec::common::hidsagentservice:
+  service { $ossec::packages::hidsagentservice:
     ensure    => running,
     enable    => true,
-    hasstatus => $ossec::common::servicehasstatus,
-    pattern   => $ossec::common::hidsagentservice,
-    require   => Package[$ossec::common::hidsagentpackage],
+    hasstatus => $ossec::packages::servicehasstatus,
+    pattern   => $ossec::packages::hidsagentservice,
+    require   => Package[$ossec::packages::hidsagentpackage],
   }
 
   concat { '/var/ossec/etc/ossec.conf':
     owner   => 'root',
     group   => 'ossec',
     mode    => '0440',
-    require => Package[$ossec::common::hidsagentpackage],
-    notify  => Service[$ossec::common::hidsagentservice]
+    require => Package[$ossec::packages::hidsagentpackage],
+    notify  => Service[$ossec::packages::hidsagentservice]
   }
   concat::fragment { 'ossec.conf_10' :
     target  => '/var/ossec/etc/ossec.conf',
     content => template('ossec/10_ossec_agent.conf.erb'),
     order   => 10,
-    notify  => Service[$ossec::common::hidsagentservice]
+    notify  => Service[$ossec::packages::hidsagentservice]
   }
   concat::fragment { 'ossec.conf_99' :
     target  => '/var/ossec/etc/ossec.conf',
     content => template('ossec/99_ossec_agent.conf.erb'),
     order   => 99,
-    notify  => Service[$ossec::common::hidsagentservice]
+    notify  => Service[$ossec::packages::hidsagentservice]
   }
 
   concat { '/var/ossec/etc/client.keys':
     owner   => 'root',
     group   => 'ossec',
     mode    => '0640',
-    notify  => Service[$ossec::common::hidsagentservice],
-    require => Package[$ossec::common::hidsagentpackage]
+    notify  => Service[$ossec::packages::hidsagentservice],
+    require => Package[$ossec::packages::hidsagentpackage]
   }
   ossec::agentkey{ "ossec_agent_${::fqdn}_client":
     agent_id         => $::uuid,
@@ -110,7 +110,7 @@ class ossec::client(
   # https://github.com/djjudas21/puppet-ossec/issues/20
   file { '/var/ossec/logs':
     ensure  => directory,
-    require => Package[$ossec::common::hidsagentpackage],
+    require => Package[$ossec::packages::hidsagentpackage],
     owner   => 'ossec',
     group   => 'ossec',
     mode    => '0755',
