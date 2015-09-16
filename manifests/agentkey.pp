@@ -7,8 +7,8 @@ define ossec::agentkey(
 ) {
   if ! $agent_id { fail("ossec::agentkey: ${agent_id} is missing")}
 
-  $agentKey1 = ossec_md5("${agent_id} ${agent_seed}")
-  $agentKey2 = ossec_md5("${agent_name} ${agent_ip_address} ${agent_seed}")
+  $agentKey1 = md5("${agent_id} ${agent_seed}")
+  $agentKey2 = md5("${agent_name} ${agent_ip_address} ${agent_seed}")
 
   concat::fragment { "var_ossec_etc_client.keys_${agent_name}_part":
     target  => '/var/ossec/etc/client.keys',
