@@ -87,6 +87,15 @@ class ossec::server (
     notify  => Service[$ossec::params::server_service]
   }
 
+  file { '/var/ossec/etc/shared/agent.conf':
+    content => template('ossec/ossec_shared_agent.conf.erb'),
+    owner   => 'root',
+    group   => 'ossec',
+    mode    => '0440',
+    notify  => Service[$ossec::params::server_service],
+    require => Package[$ossec::params::server_package]
+  }
+
   Ossec::Agentkey<<| |>>
 
 }

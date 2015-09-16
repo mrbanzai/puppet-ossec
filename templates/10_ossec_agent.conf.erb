@@ -1,45 +1,11 @@
 <ossec_config>
   <client>
-  <server-ip><%= @ossec_server_ip %></server-ip>
+    <server-ip><%= @ossec_server_ip %></server-ip>
   </client>
 
   <syscheck>
     <!-- Frequency that syscheck is executed -->
     <frequency><%= @ossec_check_frequency %></frequency>
-
-    <!-- Directories to check  (perform all possible verifications) -->
-    <directories check_all="yes">/etc,/usr/bin,/usr/sbin</directories>
-    <directories check_all="yes">/bin,/sbin</directories>
-
-    <!-- Files/directories to ignore (static) -->
-    <ignore>/etc/mtab</ignore>
-    <ignore>/etc/mnttab</ignore>
-    <ignore>/etc/hosts.deny</ignore>
-    <ignore>/etc/mail/statistics</ignore>
-    <ignore>/etc/random-seed</ignore>
-    <ignore>/etc/adjtime</ignore>
-    <ignore>/etc/httpd/logs</ignore>
-    <ignore>/etc/utmpx</ignore>
-    <ignore>/etc/wtmpx</ignore>
-    <ignore>/etc/cups/certs</ignore>
-    <ignore>/etc/dumpdates</ignore>
-    <ignore>/etc/svc/volatile</ignore>
-    <ignore>/etc/prelink.cache</ignore>
-
-    <!-- Windows files to ignore (static) -->
-    <ignore>C:\WINDOWS/System32/LogFiles</ignore>
-    <ignore>C:\WINDOWS/Debug</ignore>
-    <ignore>C:\WINDOWS/WindowsUpdate.log</ignore>
-    <ignore>C:\WINDOWS/iis6.log</ignore>
-    <ignore>C:\WINDOWS/system32/wbem/Logs</ignore>
-    <ignore>C:\WINDOWS/system32/wbem/Repository</ignore>
-    <ignore>C:\WINDOWS/Prefetch</ignore>
-    <ignore>C:\WINDOWS/PCHEALTH/HELPCTR/DataColl</ignore>
-    <ignore>C:\WINDOWS/SoftwareDistribution</ignore>
-    <ignore>C:\WINDOWS/Temp</ignore>
-    <ignore>C:\WINDOWS/system32/config</ignore>
-    <ignore>C:\WINDOWS/system32/spool</ignore>
-    <ignore>C:\WINDOWS/system32/CatRoot</ignore>
 
     <!-- Files/directories to ignore (parameterized) -->
 <% @ossec_ignorepaths.each do |path| -%>    <ignore><%= @path %></ignore>
@@ -50,16 +16,8 @@
   <rootcheck>
     <disabled>yes</disabled>
   </rootcheck>
-<% else %>
-  <rootcheck>
-    <rootkit_files>/var/ossec/etc/shared/rootkit_files.txt</rootkit_files>
-    <rootkit_trojans>/var/ossec/etc/shared/rootkit_trojans.txt</rootkit_trojans>
-    <system_audit>/var/ossec/etc/shared/system_audit_rcl.txt</system_audit>
-    <system_audit>/var/ossec/etc/shared/cis_debian_linux_rcl.txt</system_audit>
-    <system_audit>/var/ossec/etc/shared/cis_rhel_linux_rcl.txt</system_audit>
-    <system_audit>/var/ossec/etc/shared/cis_rhel5_linux_rcl.txt</system_audit>
-  </rootcheck>
 <% end %>
+
 <% if @ossec_active_response == false then %>
   <active-response>
     <disabled>yes</disabled>
@@ -74,8 +32,3 @@
     <location><%= path %></location>
   </localfile>
 <% end %>
-
-  <localfile>
-    <log_format>syslog</log_format>
-    <location>/var/ossec/logs/active-responses.log</location>
-  </localfile>
