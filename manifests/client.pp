@@ -59,7 +59,7 @@ class ossec::client(
     require   => Package[$ossec::params::agent_package],
   }
 
-  concat { $ossec::params::configfile:
+  concat { $ossec::params::config_file:
     owner   => $ossec::params::config_owner,
     group   => $ossec::params::config_group,
     mode    => $ossec::params::config_mode,
@@ -67,19 +67,19 @@ class ossec::client(
     notify  => Service[$ossec::params::agent_service]
   }
   concat::fragment { 'ossec.conf_10' :
-    target  => $ossec::params::configfile,
+    target  => $ossec::params::config_file,
     content => template('ossec/10_ossec_agent.conf.erb'),
     order   => 10,
     notify  => Service[$ossec::params::agent_service]
   }
   concat::fragment { 'ossec.conf_99' :
-    target  => $ossec::params::configfile,
+    target  => $ossec::params::config_file,
     content => template('ossec/99_ossec_agent.conf.erb'),
     order   => 99,
     notify  => Service[$ossec::params::agent_service]
   }
 
-  concat { $ossec::params::keysfile:
+  concat { $ossec::params::keys_file:
     owner   => $ossec::params::keys_owner,
     group   => $ossec::params::keys_group,
     mode    => $ossec::params::keys_mode,
