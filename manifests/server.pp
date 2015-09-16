@@ -53,35 +53,35 @@ class ossec::server (
   }
 
   # configure ossec
-  concat { '/var/ossec/etc/ossec.conf':
-    owner   => 'root',
-    group   => 'ossec',
-    mode    => '0440',
+  concat { $ossec::params::config_file:
+    owner   => $ossec::params::config_owner,
+    group   => $ossec::params::config_group,
+    mode    => $ossec::params::config_mode,
     require => Package[$ossec::params::server_package],
     notify  => Service[$ossec::params::server_service]
   }
   concat::fragment { 'ossec.conf_10' :
-    target  => '/var/ossec/etc/ossec.conf',
+    target  => $ossec::params::config_file,
     content => template('ossec/10_ossec.conf.erb'),
     order   => 10,
     notify  => Service[$ossec::params::server_service]
   }
   concat::fragment { 'ossec.conf_90' :
-    target  => '/var/ossec/etc/ossec.conf',
+    target  => $ossec::params::config_file,
     content => template('ossec/90_ossec.conf.erb'),
     order   => 90,
     notify  => Service[$ossec::params::server_service]
   }
 
-  concat { '/var/ossec/etc/client.keys':
-    owner   => 'root',
-    group   => 'ossec',
-    mode    => '0640',
+  concat { $ossec::params::keys_file:
+    owner   => $ossec::params::keys_owner,
+    group   => $ossec::params::keys_group,
+    mode    => $ossec::params::keys_mode,
     notify  => Service[$ossec::params::server_service],
     require => Package[$ossec::params::server_package],
   }
   concat::fragment { 'var_ossec_etc_client.keys_end' :
-    target  => '/var/ossec/etc/client.keys',
+    target  => $ossec::params::keys_file,
     order   => 99,
     content => "\n",
     notify  => Service[$ossec::params::server_service]
@@ -89,9 +89,9 @@ class ossec::server (
 
   file { '/var/ossec/etc/shared/agent.conf':
     content => template('ossec/ossec_shared_agent.conf.erb'),
-    owner   => 'root',
-    group   => 'ossec',
-    mode    => '0440',
+    owner   => $ossec::params::config_owner,
+    group   => $ossec::params::config_group,
+    mode    => $ossec::params::config_mode,
     notify  => Service[$ossec::params::server_service],
     require => Package[$ossec::params::server_package]
   }
