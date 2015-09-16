@@ -9,6 +9,7 @@ class ossec::server (
   $ossec_global_stat_level             = 8,
   $ossec_email_alert_level             = 7,
   $ossec_ignorepaths                   = [],
+  $ossec_local_files                   = {},
   $ossec_emailnotification             = 'yes',
   $ossec_check_frequency               = 79200,
   $use_mysql                           = false,

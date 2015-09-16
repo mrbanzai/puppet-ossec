@@ -5,6 +5,7 @@ class ossec::client(
   $ossec_server_ip,
   $ossec_emailnotification = 'yes',
   $ossec_ignorepaths       = [],
+  $ossec_local_files       = {},
   $ossec_check_frequency   = 79200,
   $selinux                 = false,
   $manage_repos            = false
