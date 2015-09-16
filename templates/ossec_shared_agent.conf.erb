@@ -1,8 +1,4 @@
 <agent_config>
-    <!-- Frequency that syscheck is executed -->
-    <frequency><%= @ossec_check_frequency %></frequency>
-    <disabled>no</disabled>
-
 <% if @ossec_rootcheck == false then %>
   <rootcheck>
     <disabled>yes</disabled>
@@ -13,6 +9,12 @@
     <disabled>yes</disabled>
   </active-response>
 <% end %>
+
+  <syscheck>
+    <!-- Frequency that syscheck is executed -->
+    <frequency><%= @ossec_check_frequency %></frequency>
+    <disabled>no</disabled>
+  </syscheck>
 </agent_config>
 
 <agent_config os="Linux">
