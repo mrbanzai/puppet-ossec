@@ -69,13 +69,13 @@ class ossec::params {
     }
     'windows': {
 
-      $config_file = "${env_programfiles(x86)}/ossec-agent/ossec.conf"
+      $config_file = sprintf('%s/%s', lookupvar('env_programfiles(x86)'), 'ossec-agent/ossec.conf')
       $config_mode = '0440'
       $config_owner = 'Administrator'
       $config_group = 'Administrators'
 
 
-      $keys_file = "${env_programfiles(x86)}/ossec-agent/client.keys"
+      $keys_file = sprintf('%s/%s', lookupvar('env_programfiles(x86)'), 'ossec-agent/client.keys')
       $keys_mode = '0440'
       $keys_owner = 'Administrator'
       $keys_group = 'Administrators'
