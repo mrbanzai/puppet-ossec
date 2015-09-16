@@ -70,3 +70,17 @@
 
  Jonathan Gazeley <jonathan.gazeley@bristol.ac.uk>:
   * SELinux permissions fix
+
+2015-09-16 Michael Porter <michael.porter@lightningsource.com> - 2.0.0
+===========================================================
+
+Michael Porter <michael.porter@lightningsource.com>:
+  * Allow skipping MySQL dependency, disabling active response,
+    and executing rootcheck
+  * Windows agent support
+  * Use Puppet md5 support, instead of adding parser function
+  * Utilize centralized agent configuration
+  * Various clean-up and reorganization of Puppet module structure
+  * Utilize 'hostname' instead of 'uniqueid' for agent ID, due to uniqueid
+    not existing on Windows, and not necessarily being unique across the org
+    on Linux

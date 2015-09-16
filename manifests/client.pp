@@ -5,10 +5,11 @@ class ossec::client(
   $ossec_server_ip,
   $ossec_emailnotification = 'yes',
   $ossec_ignorepaths       = [],
+  $ossec_local_files       = {},
   $ossec_check_frequency   = 79200,
   $selinux                 = false,
   $manage_repos            = false
-) {
+) inherits ossec::params {
   validate_bool(
     $ossec_active_response, $ossec_rootcheck,
     $selinux, $manage_repos
@@ -18,109 +19,102 @@ class ossec::client(
   #validate_integer($ossec_check_frequency, undef, 1800)
   validate_array($ossec_ignorepaths)
 
-  class { 'ossec::packages':
-    manage_repos => $manage_repos
+  if $manage_repos {
+    # TODO: Allow filtering of EPEL requirement
+    include ossec::repo
+    Class['ossec::repo'] -> Package[$ossec::params::agent_package]
   }
 
-  case $::osfamily {
-    'Debian' : {
-      $ossec_local_files = {
-        '/var/log/syslog'             => 'syslog',
-        '/var/log/auth.log'           => 'syslog',
-        '/var/log/mail.log'           => 'syslog',
-        '/var/log/dpkg.log'           => 'syslog',
-        '/var/log/apache2/access.log' => 'apache',
-        '/var/log/apache2/error.log'  => 'apache'
-      }
-      package { $ossec::packages::hidsagentpackage:
-        ensure  => installed,
-        require => $manage_repos ? {
-          true    => Apt::Source['alienvault'],
-          default => []
-        }
+  case $::kernel {
+    'Linux' : {
+      package { $ossec::params::agent_package:
+        ensure  => installed
       }
     }
-    'RedHat' : {
-      $ossec_local_files = {
-        '/var/log/messages'         => 'syslog',
-        '/var/log/secure'           => 'syslog',
-        '/var/log/maillog'          => 'syslog',
-        '/var/log/yum.log'          => 'syslog',
-        '/var/log/httpd/access_log' => 'apache',
-        '/var/log/httpd/error_log'  => 'apache'
+    'windows' : {
+      file {
+        'C:/installers/ossec-agent-win32-2.8.exe':
+          owner              => 'Administrators',
+          group              => 'Administrators',
+          mode               => '0774',
+          source             => 'puppet:///modules/ossec/ossec-agent-win32-2.8.exe',
+          source_permissions => ignore
       }
-      package { $ossec::packages::hidsagentpackage:
-        ensure  => installed,
-        require => $manage_repos ? {
-          true    => Yumrepo['ossec'],
-          default => []
-        }
+
+      package { $ossec::params::agent_package:
+        ensure          => installed,
+        source          => 'C:/installers/ossec-agent-win32-2.8.exe',
+        install_options => [ '/S' ],  # Nullsoft installer silent installation
+        require         => File['C:/installers/ossec-agent-win32-2.8.exe']
       }
     }
-    default: { fail('OS family not supported') }
+    default: { fail('OS not supported') }
   }
 
-  service { $ossec::packages::hidsagentservice:
+  service { $ossec::params::agent_service:
     ensure    => running,
     enable    => true,
-    hasstatus => $ossec::packages::servicehasstatus,
-    pattern   => $ossec::packages::hidsagentservice,
-    require   => Package[$ossec::packages::hidsagentpackage],
+    hasstatus => $ossec::params::service_has_status,
+    pattern   => $ossec::params::agent_service,
+    require   => Package[$ossec::params::agent_package],
   }
 
-  concat { '/var/ossec/etc/ossec.conf':
-    owner   => 'root',
-    group   => 'ossec',
-    mode    => '0440',
-    require => Package[$ossec::packages::hidsagentpackage],
-    notify  => Service[$ossec::packages::hidsagentservice]
+  concat { $ossec::params::config_file:
+    owner   => $ossec::params::config_owner,
+    group   => $ossec::params::config_group,
+    mode    => $ossec::params::config_mode,
+    require => Package[$ossec::params::agent_package],
+    notify  => Service[$ossec::params::agent_service]
   }
   concat::fragment { 'ossec.conf_10' :
-    target  => '/var/ossec/etc/ossec.conf',
+    target  => $ossec::params::config_file,
     content => template('ossec/10_ossec_agent.conf.erb'),
     order   => 10,
-    notify  => Service[$ossec::packages::hidsagentservice]
+    notify  => Service[$ossec::params::agent_service]
   }
   concat::fragment { 'ossec.conf_99' :
-    target  => '/var/ossec/etc/ossec.conf',
+    target  => $ossec::params::config_file,
     content => template('ossec/99_ossec_agent.conf.erb'),
     order   => 99,
-    notify  => Service[$ossec::packages::hidsagentservice]
+    notify  => Service[$ossec::params::agent_service]
   }
 
-  concat { '/var/ossec/etc/client.keys':
-    owner   => 'root',
-    group   => 'ossec',
-    mode    => '0640',
-    notify  => Service[$ossec::packages::hidsagentservice],
-    require => Package[$ossec::packages::hidsagentpackage]
+  concat { $ossec::params::keys_file:
+    owner   => $ossec::params::keys_owner,
+    group   => $ossec::params::keys_group,
+    mode    => $ossec::params::keys_mode,
+    notify  => Service[$ossec::params::agent_service],
+    require => Package[$ossec::params::agent_package]
   }
   ossec::agentkey{ "ossec_agent_${::fqdn}_client":
-    agent_id         => $::uniqueid,
+    agent_id         => $::hostname,
     agent_name       => $::fqdn,
     agent_ip_address => $::ipaddress,
   }
   @@ossec::agentkey{ "ossec_agent_${::fqdn}_server":
-    agent_id         => $::uniqueid,
+    agent_id         => $::hostname,
     agent_name       => $::fqdn,
     agent_ip_address => $::ipaddress
   }
 
-  # Set log permissions properly to fix
-  # https://github.com/djjudas21/puppet-ossec/issues/20
-  file { '/var/ossec/logs':
-    ensure  => directory,
-    require => Package[$ossec::packages::hidsagentpackage],
-    owner   => 'ossec',
-    group   => 'ossec',
-    mode    => '0755',
-  }
+  if ($::kernel == 'Linux') {
+    # Set log permissions properly to fix
+    # https://github.com/djjudas21/puppet-ossec/issues/20
+    file { '/var/ossec/logs':
+      ensure  => directory,
+      require => Package[$ossec::params::agent_package],
+      owner   => 'ossec',
+      group   => 'ossec',
+      mode    => '0755',
+    }
 
-  # SELinux
-  if ($::osfamily == 'RedHat' and $selinux == true) {
-    selinux::module { 'ossec-logrotate':
-      ensure => 'present',
-      source => 'puppet:///modules/ossec/ossec-logrotate.te',
+    # SELinux
+    # Requires selinux module specified in metadata.json
+    if ($::osfamily == 'RedHat' and $selinux == true) {
+      selinux::module { 'ossec-logrotate':
+        ensure => 'present',
+        source => 'puppet:///modules/ossec/ossec-logrotate.te',
+      }
     }
   }
 }
