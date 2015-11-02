@@ -2,15 +2,40 @@ class ossec::params {
   case $::kernel {
     'Linux': {
 
-      $config_file = '/var/ossec/etc/ossec.conf'
+      $base_dir = '/var/ossec'
+
+      $config_file = "${base_dir}/etc/ossec.conf"
       $config_mode = '0440'
       $config_owner = 'root'
       $config_group = 'ossec'
 
-      $keys_file = '/var/ossec/etc/client.keys'
+      $keys_file = "${base_dir}/etc/client.keys"
       $keys_mode = '0440'
       $keys_owner = 'root'
       $keys_group = 'ossec'
+
+      $local_rules_file = "${base_dir}/rules/local_rules.xml"
+      $local_rules_mode = '0440'
+      $local_rules_owner = 'root'
+      $local_rules_group = 'ossec'
+
+      $local_decoders_file = "${base_dir}/etc/local_decoder.xml"
+      $local_decoders_mode = '0440'
+      $local_decoders_owner = 'root'
+      $local_decoders_group = 'ossec'
+
+      # These might require configuration changes to support, but
+      # the directories are setup by the Atomicorp OSSEC RPM
+
+      $local_rules_dir = "${base_dir}/etc/rules.d"
+      $local_rules_dir_mode = '0550'
+      $local_rules_dir_owner = 'root'
+      $local_rules_dir_group = 'ossec'
+
+      $local_decoders_dir = "${base_dir}/etc/decoders.d"
+      $local_decoders_dir_mode = '0550'
+      $local_decoders_dir_owner = 'root'
+      $local_decoders_dir_group = 'ossec'
 
       case $::osfamily {
         'Debian': {
@@ -72,7 +97,6 @@ class ossec::params {
       $config_mode = '0440'
       $config_owner = 'Administrator'
       $config_group = 'Administrators'
-
 
       $keys_file = regsubst(sprintf('%s/%s', getvar('env_programfiles(x86)'), 'ossec-agent/client.keys'), '\\', '/')
       $keys_mode = '0440'

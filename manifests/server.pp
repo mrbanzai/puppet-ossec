@@ -13,7 +13,9 @@ class ossec::server (
   $ossec_emailnotification             = 'yes',
   $ossec_check_frequency               = 79200,
   $use_mysql                           = false,
-  $manage_repos                        = false
+  $manage_repos                        = false,
+  $manage_rules                        = false,
+  $manage_decoders                     = false
 ) inherits ossec::params {
   validate_bool(
     $ossec_active_response, $ossec_rootcheck,
@@ -86,6 +88,44 @@ class ossec::server (
     order   => 99,
     content => "\n",
     notify  => Service[$ossec::params::server_service]
+  }
+
+  if $manage_rules {
+    concat { $ossec::params::local_rules_file:
+      owner   => $ossec::params::local_rules_owner,
+      group   => $ossec::params::local_rules_group,
+      mode    => $ossec::params::local_rules_mode,
+      require => Package[$ossec::params::server_package],
+      notify  => Service[$ossec::params::server_service]
+    }
+
+    # TODO: Ensure configuration allows loading of files in this
+    #       directory
+    file { $ossec::params::local_rules_dir:
+      ensure => 'directory',
+      mode   => $ossec::params::local_rules_dir_mode,
+      owner  => $ossec::params::local_rules_dir_owner,
+      group  => $ossec::params::local_rules_dir_group
+    }
+  }
+
+  if $manage_decoders {
+    concat { $ossec::params::local_decoders_file:
+      owner   => $ossec::params::local_decoders_owner,
+      group   => $ossec::params::local_decoders_group,
+      mode    => $ossec::params::local_decoders_mode,
+      require => Package[$ossec::params::server_package],
+      notify  => Service[$ossec::params::server_service]
+    }
+
+    # TODO: Ensure configuration allows loading of files in this
+    #       directory
+    file { $ossec::params::local_decoders_dir:
+      ensure => 'directory',
+      mode   => $ossec::params::local_decoders_dir_mode,
+      owner  => $ossec::params::local_decoders_dir_owner,
+      group  => $ossec::params::local_decoders_dir_group
+    }
   }
 
   file { '/var/ossec/etc/shared/agent.conf':
